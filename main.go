@@ -40,6 +40,11 @@ func main() {
 				panic(e.Error())
 			}
 
+			args.Output, e = c.PersistentFlags().GetString("out")
+			if e != nil || !(args.Output == "json" || args.Output == "excel") {
+				panic(e.Error())
+			}
+
 			from, _ := c.PersistentFlags().GetString("from")
 			args.From, e = time.Parse(time.RFC3339, from+"T00:00:00Z")
 			if e != nil {
@@ -64,6 +69,7 @@ func main() {
 	command.PersistentFlags().String("from", "", "date from")
 	command.PersistentFlags().String("to", "", "date to")
 	command.PersistentFlags().String("host", "api.github.com", "github api host")
+	command.PersistentFlags().String("out", "excel", "excel or json")
 
 	if e := command.Execute(); e != nil {
 		panic(e.Error())

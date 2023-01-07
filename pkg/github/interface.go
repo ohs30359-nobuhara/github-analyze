@@ -5,6 +5,7 @@ type commonRequestIF struct {
 	Org   string
 	Repo  string
 	Token string
+	Host  string
 }
 
 // pulls api response

@@ -37,7 +37,7 @@ func GetPulls(args PullsRequest) (PullsResponse, error) {
 	var result PullsResponse
 
 	// pulls apiを使うと30件までしか取れないためissue経由で取得
-	url := fmt.Sprintf("https://api.github.com/search/issues?q=is:pr+state:closed+base:%s+repo:%s/%s", args.Base, args.Org, args.Repo)
+	url := fmt.Sprintf("https://%s/search/issues?q=is:pr+state:closed+base:%s+repo:%s/%s", args.Host, args.Base, args.Org, args.Repo)
 	// page index 0 で取得 (以降のpageはloopで回す)
 	items, nextUrl, e := getPullsPageNation(url, args.Token)
 	pr, next := pageNation(items, args.From, args.To)

@@ -10,7 +10,6 @@ func main() {
 	command := &cobra.Command{
 		Use: "analyze",
 		Run: func(c *cobra.Command, params []string) {
-
 			var (
 				args = cmd.CreateReportArgs{}
 				e    error
@@ -32,6 +31,11 @@ func main() {
 			}
 
 			args.Base, e = c.PersistentFlags().GetString("base")
+			if e != nil {
+				panic(e.Error())
+			}
+
+			args.Host, e = c.PersistentFlags().GetString("host")
 			if e != nil {
 				panic(e.Error())
 			}
@@ -59,6 +63,7 @@ func main() {
 	command.PersistentFlags().String("base", "main", "target branch (default main)")
 	command.PersistentFlags().String("from", "", "date from")
 	command.PersistentFlags().String("to", "", "date to")
+	command.PersistentFlags().String("host", "api.github.com", "github api host")
 
 	if e := command.Execute(); e != nil {
 		panic(e.Error())

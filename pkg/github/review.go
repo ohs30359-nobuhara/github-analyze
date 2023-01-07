@@ -32,7 +32,7 @@ func GetReview(args ReviewRequest) (ReviewResponse, error) {
 		} `json:"user"`
 	}
 
-	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/pulls/%s/reviews", args.Org, args.Repo, strconv.Itoa(args.PrId))
+	url := fmt.Sprintf("https://%s/repos/%s/%s/pulls/%s/reviews", args.Host, args.Org, args.Repo, strconv.Itoa(args.PrId))
 	fmt.Printf("request to %s \n", url)
 	req, e := http.NewRequest(http.MethodGet, url, bytes.NewBuffer([]byte{}))
 	if e != nil {

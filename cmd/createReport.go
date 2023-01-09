@@ -12,6 +12,7 @@ import (
 type CreateReportArgs struct {
 	github.PullsRequest
 	Output string
+	File   string
 }
 
 type result struct {
@@ -31,7 +32,6 @@ func CreateReport(args CreateReportArgs) error {
 		return e
 	}
 
-	fileName := "./report2"
 	switch args.Output {
 	case "json":
 		jsonStr, e := json.Marshal(result)
@@ -39,7 +39,7 @@ func CreateReport(args CreateReportArgs) error {
 			return e
 		}
 
-		f, e := os.Create(fileName + ".json")
+		f, e := os.Create(args.File + ".json")
 		if e != nil {
 			return e
 		}
@@ -49,7 +49,7 @@ func CreateReport(args CreateReportArgs) error {
 			return e
 		}
 	case "excel":
-		name := fileName + ".xlsx"
+		name := args.File + ".xlsx"
 		if e := excel.WriteFromMap(result.Summary, name, ""); e != nil {
 			return e
 		}

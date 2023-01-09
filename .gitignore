@@ -1,1 +1,4 @@
 .idea
+*.xlsx
+.DS_Store
+*.json

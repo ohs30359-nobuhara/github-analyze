@@ -3,15 +3,18 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"ohs30359/github-analyze/pkg/excel"
 	"ohs30359/github-analyze/pkg/github"
+	"os"
 	"time"
 )
 
 type CreateReportArgs struct {
 	github.PullsRequest
+	Output string
 }
 
-type Result struct {
+type result struct {
 	// YYYY-MM, UserName
 	Reviews map[string]map[string]int `json:"reviews"`
 	// YYYY-MM, labelName
@@ -21,15 +24,54 @@ type Result struct {
 }
 
 func CreateReport(args CreateReportArgs) error {
-	result := Result{
+	result, e := getResult(args.PullsRequest)
+	if e != nil {
+		return e
+	}
+
+	fileName := "./report"
+	switch args.Output {
+	case "json":
+		jsonStr, e := json.Marshal(result)
+		if e != nil {
+			return e
+		}
+
+		f, e := os.Create(fileName + ".json")
+		if e != nil {
+			return e
+		}
+
+		defer f.Close()
+		if _, e := f.Write(jsonStr); e != nil {
+			return e
+		}
+	case "excel":
+		name := fileName + ".xlsx"
+		if e := excel.WriteFromMap(result.Reviews, name, "user別review実施数"); e != nil {
+			return e
+		}
+		if e := excel.WriteFromMap(result.Prs, name, "label別pr数"); e != nil {
+			return e
+		}
+		if e := excel.WriteFromMap(result.Committer, name, "user別実装数"); e != nil {
+			return e
+		}
+	}
+	return nil
+}
+
+// getResult 集計結果を取得
+func getResult(args github.PullsRequest) (result, error) {
+	prs, e := github.GetPulls(args)
+	if e != nil {
+		return result{}, e
+	}
+
+	result := result{
 		Reviews:   make(map[string]map[string]int),
 		Prs:       make(map[string]map[string]int),
 		Committer: make(map[string]map[string]int),
-	}
-
-	prs, e := github.GetPulls(args.PullsRequest)
-	if e != nil {
-		return e
 	}
 
 	for _, pr := range prs.Prs {
@@ -39,6 +81,7 @@ func CreateReport(args CreateReportArgs) error {
 		req.Org = args.Org
 		req.Repo = args.Repo
 		req.Token = args.Token
+		req.Host = args.Host
 
 		// review取得に失敗した場合はskip (TODO: retryのほうが良いので変更する)
 		review, e := github.GetReview(req)
@@ -79,12 +122,5 @@ func CreateReport(args CreateReportArgs) error {
 			result.Reviews[prefixMonth][comment.User] = result.Reviews[prefixMonth][comment.User] + comment.Cnt
 		}
 	}
-
-	st, e := json.Marshal(result)
-	if e != nil {
-		return e
-	}
-
-	fmt.Println(string(st))
-	return nil
+	return result, nil
 }
